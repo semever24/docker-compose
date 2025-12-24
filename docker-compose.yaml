@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  web:
+    # build:
+    #  context: ./app
+    #  dockerfile: Dockerfile
+    image: semever/docker-compose-app:1.0
+    container_name: demo-flask
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - MONGO_URI=mongodb://${MONGO_ADMIN_USER}:${MONGO_ADMIN_PASS}@mongo:27017/mydb?authSource=admin&directConnection=true
+      - MONGO_DB=mydb
+      - MONGO_COLLECTION=items
+      - FLASK_ENV=development
+      - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_RUN_PORT=5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/usr/src/app
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mongo:
+    image: mongo
+    container_name: demo-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ADMIN_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ADMIN_PASS}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-express:
+    image: mongo-express
+    container_name: demo-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_ADMIN_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_ADMIN_PASS}
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:

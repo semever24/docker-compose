@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Python + MongoDB Demo</title>
+  <style>
+    body { font-family: Arial; margin: 24px; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    th, td { padding: 8px; border: 1px solid #ddd; }
+    th { background: #f2f2f2; }
+    input[type=text] { padding: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Items (MongoDB)</h1>
+  <div id="status">Loading...</div>
+
+  <table id="items-table" style="display:none">
+    <thead><tr><th>id</th><th>name</th><th>designation</th><th>city</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <h3>Add item</h3>
+  <div>
+    <input id="fld-id" type="text" placeholder="id">
+    <input id="fld-name" type="text" placeholder="name">
+    <input id="fld-designation" type="text" placeholder="designation">
+    <input id="fld-city" type="text" placeholder="city">
+    <button id="btn-add">Add</button>
+  </div>
+
+<script>
+async function loadItems(){
+  document.getElementById('status').textContent = 'Loading items...';
+  try{
+    const res = await fetch('/api/items');
+    const data = await res.json();
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    if(!Array.isArray(data) || data.length===0){
+      document.getElementById('status').textContent = 'No items (or empty collection).';
+      document.getElementById('items-table').style.display='none';
+      return;
+    }
+    for(const d of data){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(d.id)}</td><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.designation)}</td><td>${escapeHtml(d.city)}</td>`;
+      tbody.appendChild(tr);
+    }
+    document.getElementById('status').textContent = '';
+    document.getElementById('items-table').style.display='table';
+  }catch(e){
+    document.getElementById('status').textContent = 'Error loading items: ' + e;
+  }
+}
+
+function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('btn-add').addEventListener('click', async ()=>{
+  const obj = {
+    id: Number(document.getElementById('fld-id').value),
+    name: document.getElementById('fld-name').value,
+    designation: document.getElementById('fld-designation').value,
+    city: document.getElementById('fld-city').value
+  };
+  const res = await fetch('/api/items', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify(obj) });
+  if(res.ok){ await loadItems(); } else { const text = await res.text(); alert('Failed: ' + text); }
+});
+
+window.addEventListener('DOMContentLoaded', loadItems);
+</script>
+</body>
+</html>
