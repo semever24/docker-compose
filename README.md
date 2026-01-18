@@ -36,21 +36,6 @@ Client → Web Application (Python / Flask) → MongoDB Database
 
 ---
 
-## 📂 Project Structure
-
-```
-.
-├── docker-compose.yml
-├── app/
-│   ├── Dockerfile
-│   ├── app.py
-│   ├── requirements.txt
-│   └── ...
-├── README.md
-```
-
----
-
 ## ⚙️ Key Features
 
 - Multi-container orchestration using Docker Compose
@@ -129,12 +114,4 @@ docker-compose down -v
 - Observability with Prometheus & Grafana
 
 ---
-
-## 👨‍💻 Author
-
-**Senthil Kumar R**  
-DevOps Engineer | Docker | Kubernetes | AWS | Terraform | CI/CD
-
----
-
 ⭐ If you find this project useful, please give it a star!
